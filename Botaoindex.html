@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle do Firebase</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #eef2f3;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        .status-on { color: #2ecc71; }
+        .status-off { color: #e74c3c; }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        button {
+            flex: 1;
+            padding: 15px 0;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:active {
+            transform: scale(0.96);
+        }
+        .btn-on {
+            background-color: #2ecc71;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+        .btn-on:hover {
+            background-color: #27ae60;
+        }
+        .btn-off {
+            background-color: #e74c3c;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        .btn-off:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Painel de Controle</h1>
+        
+        <div class="status-box">
+            Status: <span id="statusText">Carregando...</span>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-on" id="btnLigar">Ligar</button>
+            <button class="btn-off" id="btnDesligar">Desligar</button>
+        </div>
+    </div>
+
+    <!-- Importação dos Módulos Oficiais do Firebase (Versão Atualizada) -->
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getDatabase, ref, set, onValue } from "https://gstatic.com";
+
+        // CONFIGURAÇÃO DO SEU FIREBASE
+        // Substitua os dados abaixo com as informações do seu console Firebase [1]
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMQndhZQ-zYipDO-j3C6Ep2_WCfByMWl0",
+            authDomain: "casa-adaptada.firebaseapp.com",
+            databaseURL: "https://casa-adaptada-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "casa-adaptada",
+            storageBucket: "casa-adaptada.firebasestorage.app",
+            messagingSenderId: "1009317352215",
+            appId: "1:1009317352215:web:2de4d3e3008727b2eadd52"
+        };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Caminho onde o dado será salvo (Ex: dispositivos -> led) [1]
+        const statusRef = ref(database, 'dispositivos/led');
+
+        // Mapeamento dos elementos da tela
+        const btnLigar = document.getElementById('btnLigar');
+        const btnDesligar = document.getElementById('btnDesligar');
+        const statusText = document.getElementById('statusText');
+
+        // Evento para enviar o valor 1 (Ligar) [1]
+        btnLigar.addEventListener('click', () => {
+            set(statusRef, 1)
+                .then(() => console.log("Comando LIGAR enviado com sucesso!"))
+                .catch(error => alert("Erro ao conectar ao Firebase: " + error.message));
+        });
+
+        // Evento para enviar o valor 0 (Desligar) [1]
+        btnDesligar.addEventListener('click', () => {
+            set(statusRef, 0)
+                .then(() => console.log("Comando DESLIGAR enviado com sucesso!"))
+                .catch(error => alert("Erro ao conectar ao Firebase: " + error.message));
+        });
+
+        // Monitora o Firebase em tempo real e atualiza o texto na tela de forma automática [1]
+        onValue(statusRef, (snapshot) => {
+            const valor = snapshot.val();
+            if (valor === 1) {
+                statusText.innerText = "LIGADO";
+                statusText.className = "status-on";
+            } else if (valor === 0) {
+                statusText.innerText = "DESLIGADO";
+                statusText.className = "status-off";
+            } else {
+                statusText.innerText = "SEM DADOS";
+                statusText.className = "";
+            }
+        }, (error) => {
+            console.error("Erro de leitura do Firebase:", error);
+            statusText.innerText = "Erro de Permissão";
+            statusText.className = "status-off";
+        });
+    </script>
+</body>
+</html>
